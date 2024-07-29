@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -48,6 +49,7 @@ func (client *Client) writePump() {
 			client.Conn.Close()
 	}()
 	for message := range client.Message {
+		fmt.Printf("Sending message %v\n", message)
 		client.Conn.WriteJSON(message)
 	}
 }

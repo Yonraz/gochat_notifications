@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -13,6 +14,8 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
+	ReadBufferSize: 1024,
+	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -24,6 +27,7 @@ type Handler struct {
 	Unregister chan *Client
 	Broadcast  chan *Message
 	Clients    map[string]*Client
+	sync.RWMutex
 }
 
 func NewHandler(h *redis.Client) *Handler {
@@ -36,7 +40,7 @@ func NewHandler(h *redis.Client) *Handler {
 	}
 }
 
-func (h *Handler) JoinNotifications(ctx *gin.Context) {
+func (h *Handler) Join(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Printf("error upgrading to ws connection: %v\n", err)
@@ -62,6 +66,7 @@ func (h *Handler) JoinNotifications(ctx *gin.Context) {
 		Content: "online",
 		Type: constants.UserOnline,
 	}
+	log.Printf("Username %v connected", username)
 
 	h.Register <- client
 	h.Broadcast <- message
@@ -70,7 +75,10 @@ func (h *Handler) JoinNotifications(ctx *gin.Context) {
 	client.readPump(h)
 }
 
+
 func (h *Handler) handleDisconnection(client *Client) {
+	h.Lock()
+	defer h.Unlock()
 	message := &Message{
 		Sender: client.Username,
 		Content: "offline",
@@ -86,6 +94,8 @@ func (h *Handler) handleDisconnection(client *Client) {
 }
 
 func (h *Handler) handleConnection(client *Client) {
+	h.Lock()
+	defer h.Unlock()
 	fmt.Printf("Client %v joined!\n", client.Username)	
 	h.Clients[client.Username] = client
 	h.hub.SAdd(context.Background(), "notifications:clients", client.Username)
@@ -107,6 +117,7 @@ func (h *Handler) Run() {
 				log.Println("Error fetching clients:", err)
 				continue
 			}
+			fmt.Printf("%v", clients)
 
 			// Send the message to each client
 			for _, username := range clients {

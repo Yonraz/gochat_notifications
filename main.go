@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yonraz/gochat_notifications/initializers"
+	"github.com/yonraz/gochat_notifications/ws"
 )
 
 func init() {
@@ -29,7 +30,9 @@ func main() {
 			log.Printf("Failed to close RabbitMQ connection: %v", err)
 		}
 	}()
-
+	wsHandler := ws.NewHandler(initializers.RedisClient)
+	router.GET("/ws/notifications/join", wsHandler.Join)
 	
+	go wsHandler.Run()
 	router.Run()
 }
