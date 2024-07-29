@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Temporary files
+*.log
+*.tmp
+
+# Go-specific files
+*.test
+*.out
+
+# Dependency directories
+vendor/
+
+# Directories
+bin/
+pkg/
+
+# Version control
+.git/
+.gitignore
+
+# IDE/editor configurations
+.vscode/
+.idea/
+*.swp
+*~
+
+# Docker ignore itself
+.dockerignore
+
+# Exclude other unnecessary files
+README.md
+LICENSE
