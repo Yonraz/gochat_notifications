@@ -4,6 +4,7 @@ type Queues string
 type RoutingKey string
 type Exchange string
 type MessageType string
+type RedisSet string
 
 const (
 	UserEventsExchange    Exchange = "UserEventsExchange"
@@ -30,4 +31,8 @@ const (
 	UserOnline      MessageType = "user.online"
 	UserOffline     MessageType = "user.offline"
 	UserSentMessage MessageType = "user.sent.message"
+)
+
+const (
+	NotificationClients RedisSet = "notifications:clients"
 )

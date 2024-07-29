@@ -32,8 +32,9 @@ func (client *Client) readPump(handler *Handler) {
 		_, message, err := client.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v\n", err)
+				log.Printf("connection closed: %v\n", err)
 			}
+			handler.Unregister <- client
 			break
 		}
 
