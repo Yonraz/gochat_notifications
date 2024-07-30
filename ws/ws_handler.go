@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/yonraz/gochat_notifications/constants"
 )
@@ -40,11 +41,6 @@ func NewHandler(h *redis.Client) *Handler {
 
 func (h *Handler) Join(ctx *gin.Context) {
 	username := ctx.Query("username")
-	if username == "" {
-		log.Println("Username query parameter missing")
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Username query parameter is required"})
-		return
-	}
 	h.Lock()
 	if _, exists := h.Clients[username]; exists {
 		log.Printf("Username %v already connected", username)
@@ -61,43 +57,70 @@ func (h *Handler) Join(ctx *gin.Context) {
 		conn.Close()
 		return
 	}
-
+	isGuest := username == ""
+	if isGuest {
+		username = uuid.New().String()
+	} 
 	client := &Client{
 		Conn: conn,
 		Username: username,
 		Message: make(chan *Message),
+		IsGuest: isGuest,
 	}
-	message := &Message{
-		Sender: username,
-		Content: "online",
-		Type: constants.UserOnline,
-	}
-	log.Printf("initializing connection for %v...\n", username)
-
 	h.Register <- client
-	h.Broadcast <- message
-
+	
+	if !isGuest {
+		message := &Message{
+			Sender: username,
+			Content: "online",
+			Type: constants.UserOnline,
+		}
+		h.Broadcast <- message
+	}
+	
+	log.Printf("initializing connection for %v...\n", username)
 	go client.writePump() 
-	client.readPump(h)
+	go client.readPump(h)
 }
 
 
 func (h *Handler) handleDisconnection(client *Client) {
-	message := &Message{
-		Sender: client.Username,
-		Content: "offline",
-		Type: constants.UserOffline,
-	}
 	
-	h.Broadcast <- message
-	fmt.Printf("Client %v left!\n", client.Username)
-
 	h.Lock()
 	defer h.Unlock()
-	h.hub.SRem(context.Background(), string(constants.NotificationClients), client.Username)
-	h.hub.Del(context.Background(), client.Username)
+	if _, ok := h.Clients[client.Username]; ok {
+		client.Conn.Close()
+		delete(h.Clients, client.Username)
+		if !client.IsGuest {
+			message := &Message{
+				Sender: client.Username,
+				Content: "offline",
+				Type: constants.UserOffline,
+			}
 
-	delete(h.Clients, client.Username)
+			h.Broadcast <- message
+		}
+		
+		fmt.Printf("Client %v left!\n", client.Username)
+	}
+	
+
+	// Log initial state
+	log.Printf("Disconnecting client: %s", client.Username)
+
+
+
+	// Remove client from Redis set
+	removeCmd := h.hub.SRem(context.Background(), string(constants.NotificationClients), client.Username)
+	if err := removeCmd.Err(); err != nil {
+		log.Printf("Error removing client from Redis set: %v", err)
+	} else if removedCount := removeCmd.Val(); removedCount == 0 {
+		log.Printf("Client %s was not found in Redis set", client.Username)
+	} else {
+		log.Printf("Removed client %s from Redis set", client.Username)
+	}
+	log.Printf("Final Redis clients: %v", h.hub.SMembers(context.Background(), string(constants.NotificationClients)).Val())
+
 }
 
 func (h *Handler) handleConnection(client *Client) {

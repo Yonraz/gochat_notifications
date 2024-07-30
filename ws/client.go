@@ -14,6 +14,7 @@ type Client struct {
 	Conn     *websocket.Conn
 	Message  chan *Message
 	Username string
+	IsGuest bool 
 }
 
 type Message struct {
@@ -25,8 +26,9 @@ type Message struct {
 
 func (client *Client) readPump(handler *Handler) {
 	defer func() {
-			handler.Unregister <- client
-			client.Conn.Close()
+		handler.handleDisconnection(client)
+		// handler.handleDisconnection(client)
+		client.Conn.Close()
 	}()
 	for {
 		_, message, err := client.Conn.ReadMessage()
@@ -34,7 +36,6 @@ func (client *Client) readPump(handler *Handler) {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("connection closed: %v\n", err)
 			}
-			handler.Unregister <- client
 			break
 		}
 
