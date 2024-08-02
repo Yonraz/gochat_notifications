@@ -19,6 +19,7 @@ type Client struct {
 
 type Message struct {
 	gorm.Model
+	ID string `json:"ID" gorm:"primarykey"`
 	Sender string `json:"sender"`
 	Content string `json:"content"`
 	Type constants.MessageType `json:"type"`
