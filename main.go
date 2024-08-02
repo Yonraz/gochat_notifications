@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yonraz/gochat_notifications/events/consumers"
 	"github.com/yonraz/gochat_notifications/initializers"
 	"github.com/yonraz/gochat_notifications/ws"
 )
@@ -34,5 +35,9 @@ func main() {
 	router.GET("/ws/notifications/join", wsHandler.Join)
 	
 	go wsHandler.Run()
+	
+	messageSentConsumer := consumers.NewMessageSentConsumer(initializers.RmqChannel)
+
+	go messageSentConsumer.Consume()
 	router.Run()
 }
