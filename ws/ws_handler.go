@@ -120,7 +120,6 @@ func (h *Handler) handleDisconnection(client *Client) {
 		log.Printf("Removed client %s from Redis set", client.Username)
 	}
 	log.Printf("Final Redis clients: %v", h.hub.SMembers(context.Background(), string(constants.NotificationClients)).Val())
-
 }
 
 func (h *Handler) handleConnection(client *Client) {
@@ -131,6 +130,7 @@ func (h *Handler) handleConnection(client *Client) {
 	h.Clients[client.Username] = client
 	h.hub.SAdd(context.Background(), string(constants.NotificationClients), client.Username)
 }
+
 func (h *Handler) handleBroadcast(message *Message) {
     c := context.Background()
     clients, err := h.hub.SMembers(c, "notifications:clients").Result()
@@ -147,6 +147,9 @@ func (h *Handler) handleBroadcast(message *Message) {
         if !ok || message.Sender == username {
             continue
         }
+		if message.Type == constants.UserSentMessage && message.Receiver != username {
+			continue
+		}
         select {
         case client.Message <- message:
         default:

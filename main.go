@@ -36,7 +36,7 @@ func main() {
 	
 	go wsHandler.Run()
 	
-	messageSentConsumer := consumers.NewMessageSentConsumer(initializers.RmqChannel)
+	messageSentConsumer := consumers.NewMessageSentConsumer(wsHandler, initializers.RmqChannel)
 
 	go messageSentConsumer.Consume()
 	router.Run()

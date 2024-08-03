@@ -5,18 +5,21 @@ import (
 
 	"github.com/streadway/amqp"
 	"github.com/yonraz/gochat_notifications/constants"
+	"github.com/yonraz/gochat_notifications/ws"
 )
 
 type Consumer struct {
+	wsHandler *ws.Handler
 	channel     *amqp.Channel
 	queueName   string
 	routingKey  string
 	exchange    string
-	handlerFunc func(amqp.Delivery) error
+	handlerFunc func(*ws.Handler, amqp.Delivery) error
 }
 
-func NewConsumer(channel *amqp.Channel, queueName constants.Queues, routingKey constants.RoutingKey, exchange constants.Exchange, handlerFunc func(amqp.Delivery) error) *Consumer {
+func NewConsumer(wsHandler *ws.Handler, channel *amqp.Channel, queueName constants.Queues, routingKey constants.RoutingKey, exchange constants.Exchange, handlerFunc func(*ws.Handler, amqp.Delivery) error) *Consumer {
 	return &Consumer {
+		wsHandler: wsHandler,
 		channel: channel,
 		queueName: string(queueName),
 		routingKey: string(routingKey),
@@ -41,7 +44,7 @@ func (c *Consumer) Consume() error {
 
 	go func () {
 		for msg := range msgs {
-			if err := c.handlerFunc(msg); err != nil {
+			if err := c.handlerFunc(c.wsHandler, msg); err != nil {
 				fmt.Printf("error consuming message %v: %v\n", msg, err)
 				msg.Nack(false, true)		
 			} else {

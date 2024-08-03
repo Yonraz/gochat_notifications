@@ -5,6 +5,7 @@ type RoutingKey string
 type Exchange string
 type MessageType string
 type RedisSet string
+type Notification string
 
 const (
 	UserEventsExchange    Exchange = "UserEventsExchange"
@@ -28,9 +29,9 @@ const (
 )
 
 const (
-	UserOnline      MessageType = "user.online"
-	UserOffline     MessageType = "user.offline"
-	UserSentMessage MessageType = "user.sent.message"
+	UserOnline      Notification = "user.online"
+	UserOffline     Notification = "user.offline"
+	UserSentMessage Notification = "user.sent.message"
 )
 
 const (

@@ -21,8 +21,9 @@ type Message struct {
 	gorm.Model
 	ID string `json:"ID" gorm:"primarykey"`
 	Sender string `json:"sender"`
+	Receiver string `json:"receiver"`
 	Content string `json:"content"`
-	Type constants.MessageType `json:"type"`
+	Type constants.Notification `json:"type"`
 }
 
 func (client *Client) readPump(handler *Handler) {
