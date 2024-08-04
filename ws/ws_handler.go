@@ -2,6 +2,7 @@ package ws
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -144,12 +145,28 @@ func (h *Handler) handleBroadcast(message *Message) {
         h.RLock()
         client, ok := h.Clients[username]
         h.RUnlock()
+
         if !ok || message.Sender == username {
             continue
-        }
-		if message.Type == constants.UserSentMessage && message.Receiver != username {
-			continue
+        } 
+		if message.Type == constants.UserSentMessage {
+			if message.Receiver != username {
+				continue
+			}
+			messageJson, err := json.Marshal(message)
+			if err != nil {
+				log.Panicf("could not marshal notification: %v\n", err)
+				return;
+			}
+			_, err = h.hub.HSet(context.Background(), "notifications:"+username, message.ID, messageJson).Result()
+			if err != nil {
+                log.Printf("Error saving notification to Redis: %v", err)
+                continue
+            }
+			log.Printf("saved notification %v to notifications:%v\n", messageJson, username)
 		}
+
+
         select {
         case client.Message <- message:
         default:

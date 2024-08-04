@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yonraz/gochat_notifications/controllers"
 	"github.com/yonraz/gochat_notifications/events/consumers"
 	"github.com/yonraz/gochat_notifications/initializers"
 	"github.com/yonraz/gochat_notifications/ws"
@@ -32,6 +33,10 @@ func main() {
 		}
 	}()
 	wsHandler := ws.NewHandler(initializers.RedisClient)
+	notifController := controllers.NewNotificationsController(initializers.RedisClient)
+
+	router.GET("/ws/notifications/:username", notifController.GetNotificationsForUser)
+	router.DELETE("ws/notifications/:username", notifController.DeleteNotifications)
 	router.GET("/ws/notifications/join", wsHandler.Join)
 	
 	go wsHandler.Run()
