@@ -3,6 +3,7 @@ package ws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/yonraz/gochat_notifications/constants"
@@ -18,12 +19,13 @@ type Client struct {
 }
 
 type Message struct {
-	gorm.Model
 	ID string `json:"ID" gorm:"primarykey"`
 	Sender string `json:"sender"`
 	Receiver string `json:"receiver"`
 	Content string `json:"content"`
 	Type constants.Notification `json:"type"`
+	CreatedAt time.Time  				`json:"createdAt"`
+	UpdatedAt time.Time  				`json:"updatedAt"`
 }
 
 func (client *Client) readPump(handler *Handler) {

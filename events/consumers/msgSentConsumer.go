@@ -32,6 +32,8 @@ func MessageSentHanlder(wsHandler *ws.Handler, msg amqp.Delivery) error {
 		Sender: parsed.Sender,
 		Type: parsed.Type,
 		Receiver: parsed.Receiver,
+		CreatedAt: parsed.CreatedAt,
+		UpdatedAt: parsed.UpdatedAt,
 	}
 	wsHandler.Broadcast <- message
 	return nil

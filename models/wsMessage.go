@@ -1,8 +1,9 @@
 package models
 
 import (
+	"time"
+
 	"github.com/yonraz/gochat_notifications/constants"
-	"gorm.io/gorm"
 )
 
 type WsMessage struct {
@@ -12,6 +13,7 @@ type WsMessage struct {
 	Receiver 	string					`json:"receiver"`
 	Status  	constants.RoutingKey	`json:"status"`	
 	Type 		constants.Notification	`json:"type"`
-	gorm.Model
+	CreatedAt time.Time  				`json:"createdAt"`
+	UpdatedAt time.Time  				`json:"updatedAt"`
 }
 
