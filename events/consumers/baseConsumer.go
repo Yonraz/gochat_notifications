@@ -46,7 +46,7 @@ func (c *Consumer) Consume() error {
 		for msg := range msgs {
 			if err := c.handlerFunc(c.wsHandler, msg); err != nil {
 				fmt.Printf("error consuming message %v: %v\n", msg, err)
-				msg.Nack(false, true)		
+				msg.Nack(false, false)		
 			} else {
 
 			msg.Ack(false)
