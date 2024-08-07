@@ -21,11 +21,11 @@ const (
 )
 
 const (
-	UserLoginQueue        Queues = "UserLoginQueue"
-	UserSignoutQueue      Queues = "UserSignoutQueue"
-	MessageSentQueue      Queues = "MessageSentQueue"
-	MessageDeliveredQueue Queues = "MessageDeliveredQueue"
-	MessageReadQueue      Queues = "MessageReadQueue"
+	UserLoginQueue        Queues = "NOTIFICATIONS_SRV_UserLoginQueue"
+	UserSignoutQueue      Queues = "NOTIFICATIONS_SRV_UserSignoutQueue"
+	MessageSentQueue      Queues = "NOTIFICATIONS_SRV_MessageSentQueue"
+	MessageDeliveredQueue Queues = "NOTIFICATIONS_SRV_MessageDeliveredQueue"
+	MessageReadQueue      Queues = "NOTIFICATIONS_SRV_MessageReadQueue"
 )
 
 const (
