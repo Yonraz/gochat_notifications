@@ -23,7 +23,7 @@ func DeclareExchanges(channel *amqp.Channel) error {
 
 	err = channel.ExchangeDeclare(
 		string(constants.MessageEventsExchange),
-		"topic",             
+		"fanout",             
 		true,                
 		false,               
 		false, 
